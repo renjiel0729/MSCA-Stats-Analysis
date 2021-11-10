@@ -1,0 +1,98 @@
+---
+title: "HW9"
+author: "Renjie Liu"
+date: "12/3/2020"
+output: html_document
+---
+
+```{r}
+dataPath <- "/Users/renjieliu/Desktop/Fall20/Stats Analysis/Week9"
+test_dat <- read.table(paste(dataPath,'Week9_Test_Sample.csv',sep = '/'), header=TRUE)
+
+Data.Levels<-as.numeric(test_dat[,1])
+test_dat<-test_dat[,-1]
+head(test_dat)
+
+```
+
+
+
+```{r}
+pca <- princomp(test_dat)
+summary(pca)
+
+plot(pca)
+biplot(pca)
+
+
+factors <- pca$scores[,1:3]
+loadings <- pca$loadings[,1:3]
+zeroLoading <- pca$center
+
+plot(factors)
+plot(loadings)
+zeroLoading
+
+matplot(1:dim(factors)[1],factors[,1:3],type="l",lty=1,main="Factors",
+        xlab="Samples",ylab="Factors",col=c("black","blue","orange"))
+
+predictions <- t(apply(factors%*%t(loadings),1,function(z) z+zeroLoading))
+predictions
+res <- testdat-predictions
+head(res)
+
+
+```
+
+
+
+Linear Model
+```{r}
+dataPath <- "/Users/renjieliu/Desktop/Fall20/Stats Analysis/Week9"
+test_data <- read.table(paste(dataPath,'Week9_Test_Sample.csv',sep = '/'), header=TRUE)
+model1<-lm(test_data$Resp ~ test_data$Pred1+test_data$Pred2+test_data$Pred3+test_data$Pred4+test_data$Pred5+test_data$Pred6+test_data$Pred7+test_data$Pred8+test_data$Pred9+test_data$Pred10,data = test_data)
+
+summary(model1)
+
+model2<-lm(test_data$Resp ~ test_data$Pred1+test_data$Pred2+test_data$Pred6,data = test_data)
+model2<-lm(test_data$Resp ~ test_data$Pred1+test_data$Pred2+test_data$Pred3,data = test_data)
+model2<-lm(test_data$Resp ~ test_data$Pred3+test_data$Pred4+test_data$Pred6,data = test_data)
+summary(model2)
+
+predictions <- t(apply(factors%*%t(loadings),1,function(z) z+zeroLoading))
+predictions
+
+res <- test_dat-predictions
+res
+
+library(rlist)
+find_big_res <- function(res_column,zerLoad,counNames){
+  IndexPos <- res_column/zerLoad >= 1
+  IndexNeg <- res_column/zerLoad <= -1
+  posNames <- counNames[IndexPos]
+  negNames <- counNames[IndexNeg]
+  if(length(posNames)==0) posNames<-NA
+  if(length(negNames)==0) negNames<-NA
+  list (posNames=posNames,negNames=negNames)
+}
+
+extremes <- list()
+extremes <- sapply(1:10,function(z) list.append(extremes,find_big_res(res[,z],zeroLoading[z],Data.Levels)))
+names(extremes) <- colnames(test_dat)
+extremes
+
+
+lm(Data.Levels~pca$loadings[,1]+pca$loadings[,2]+pca$loadings[,3])
+
+```
+
+
+
+
+
+
+
+
+
+
+

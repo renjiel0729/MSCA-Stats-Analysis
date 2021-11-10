@@ -1,0 +1,91 @@
+---
+title: "HW5"
+author: "Renjie Liu"
+date: "10/29/2020"
+output: html_document
+---
+
+```{r}
+dataPath<- "/Users/renjieliu/Desktop/Fall20/Stats Analysis/week5"
+dat <- read.table(paste(dataPath,'Week5_Test_Sample.csv',sep = '/'), header=TRUE)
+
+dat
+plot(dat)
+nSample <-length(dat$Input)
+
+m1<-lm(Output~Input,dat)
+
+
+matplot(dat$Input,cbind(dat$Output,m1$fitted.values),type="p",pch=16,ylab="Sample and Fitted Values")
+summary(m1)
+
+estimatedResiduals<-m1$residuals
+plot(dat$Input,estimatedResiduals)
+
+Probability.Density.Residuals<-density(estimatedResiduals)
+plot(Probability.Density.Residuals,ylim=c(0,.5))
+lines(Probability.Density.Residuals$x,
+      dnorm(Probability.Density.Residuals$x,mean=mean(estimatedResiduals),sd=sd(estimatedResiduals)))
+
+
+Train.Sample<-data.frame(trainInput=dat$Input,trainOutput=rep(NA,nSample))
+Train.Sample.Steeper<-data.frame(trainSteepInput=dat$Input,
+                                       trainSteepOutput=rep(NA,nSample))  
+Train.Sample.Flatter<-data.frame(trainFlatInput=dat$Input,
+                                       trainFlatOutput=rep(NA,nSample)) 
+
+head(cbind(dat,
+           Train.Sample,
+           Train.Sample.Steeper,
+           Train.Sample.Flatter))
+
+Train.Sample.Selector<-dat$Input>=5
+Train.Sample.Steeper.Selector<-Train.Sample.Selector&
+  (dat$Output>m1$fitted.values)
+Train.Sample.Flatter.Selector<-Train.Sample.Selector&
+  (dat$Output<=m1$fitted.values)
+
+```
+
+Method 2
+```{r}
+dataPath<- "/Users/renjieliu/Desktop/Fall20/Stats Analysis/week5"
+dat <- read.table(paste(dataPath,'Week5_Test_Sample.csv',sep = '/'), header=TRUE)
+
+
+plot(dat)
+nSample <-length(dat$Input)
+
+m1<-lm(Output~Input,dat)
+
+plot(dat$Input,(dat$Output-mean(dat$Output))^2, type="p",pch=19,
+     ylab="Squared Deviations")
+
+clusteringParabola <- (m1$fitted.values-mean(dat$Output))^2
+
+points(dat$Input,clusteringParabola,pch=19,col="red")
+
+
+yavg <- mean(dat$Output)
+Unscrambling.Sequence.Steeper.var <- ifelse((dat$Output-yavg)^2 >=clusteringParabola, TRUE, FALSE)
+
+Subsample.Steeper.var<- data.frame(steeperInput.var=dat$Input,steeperOutput.var=rep(NA,nSample))
+
+Subsample.Flatter.var<- data.frame(flatterInput.var=dat$Input,flatterOutput.var=rep(NA,nSample))
+
+Subsample.Steeper.var[Unscrambling.Sequence.Steeper.var,2]<- dat[Unscrambling.Sequence.Steeper.var,1]
+
+Subsample.Flatter.var[!Unscrambling.Sequence.Steeper.var,2]<- dat[!Unscrambling.Sequence.Steeper.var,1] 
+
+mSteep <- lm(formula = steeperOutput.var ~ steeperInput.var, data = Subsample.Steeper.var)
+
+mFlat <- lm(formula = flatterOutput.var ~ flatterInput.var, data = Subsample.Flatter.var)
+
+GeneralModel <- m1
+
+res <- list( GeneralModel = GeneralModel,mSteep = mSteep,mFlat = mFlat)
+saveRDS(res, file = paste(dataPath,'result.rds',sep = '/'))
+
+
+```
+

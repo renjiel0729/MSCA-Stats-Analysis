@@ -1,0 +1,63 @@
+---
+title: "Untitled"
+author: "Renjie Liu"
+date: "10/1/2020"
+output: html_document
+---
+
+```{r}
+
+dataPath <- "/Users/renjieliu/Desktop/Fall20/Stats Analysis/Week1"
+data <- read.table(paste(dataPath,'Week1_Test_Sample.csv',sep = '/'), header=TRUE)
+
+1.
+p1 = sum(data$u==1 & data$v==1)/nrow(data)
+p2 = sum(data$u==1 & data$v==2)/nrow(data)
+p3 = sum(data$u==1 & data$v==3)/nrow(data)
+p4 = sum(data$u==1 & data$v==4)/nrow(data)
+
+p5 = sum(data$u==2 & data$v==1)/nrow(data)
+p6 = sum(data$u==2 & data$v==2)/nrow(data)
+p7 = sum(data$u==2 & data$v==3)/nrow(data)
+p8 = sum(data$u==2 & data$v==4)/nrow(data)
+
+p9 = sum(data$u==3 & data$v==1)/nrow(data)
+p10 = sum(data$u==3 & data$v==2)/nrow(data)
+p11 = sum(data$u==3 & data$v==3)/nrow(data)
+p12 = sum(data$u==3 & data$v==4)/nrow(data)
+
+u_Marginal <- cbind(p1+p2+p3+p4,p5+p6+p7+p8,p9+p10+p11+p12)
+v_Marginal <- cbind(p1+p5+p9,p2+p6+p10,p3+p7+p11,p4+p8+p12)
+
+
+joint_distribution <- matrix(cbind(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12),3,4,byrow = TRUE)
+
+u_Conditional_v <- cbind(p4/sum(p4,p8,p12),p8/sum(p4,p8,p12),p12/sum(p4,p8,p12))
+v_Conditional_u <- cbind(p9/sum(p9+p10+p11+p12),p10/sum(p9+p10+p11+p12),p11/sum(p9+p10+p11+p12),p12/sum(p9+p10+p11+p12))
+
+res <-list(Joint_distribution=joint_distribution,
+           u_Marginal = u_Marginal,
+           v_Marginal = v_Marginal,
+           u_Conditional_v = u_Conditional_v,
+           v_Conditional_u = v_Conditional_u          )
+
+saveRDS(res, file = paste(dataPath,'result.rds',sep = '/'))
+
+```
+
+```{r}
+m1 <- matrix(0,3,4)
+
+for (i in 1:3) {
+  for (j in 1:4) {
+    m1[i,j] <- sum(data$u == i & data$v == j)/nrow(data)
+  }
+}
+
+u_Marginal <- rowSums(m1)
+v_Marginal <- colSums(m1)
+
+u_Conditional_v <- m1[,4]/sum(m1[,4])
+v_Conditional_u <- m1[3,]/sum(m1[3,])
+
+```

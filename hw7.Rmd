@@ -1,0 +1,108 @@
+---
+title: "hw7"
+author: "Renjie Liu"
+date: "11/10/2020"
+output: html_document
+---
+1.1 Read the data
+```{r}
+
+dataPath <- "/Users/renjieliu/Desktop/Fall20/Stats Analysis/Week7"
+Regression.ANOVA.Data<-
+  read.csv(file=paste(dataPath,"assignments_MScA Statistical Analysis 31007_MScA 31007 Lecture 7_DataForRegressionANOVA.csv",sep="/"),
+           header=TRUE,sep=",")
+head(Regression.ANOVA.Data)
+```
+
+1.2 Fit linear models using: no inputs, only Input1, only Input2, both Input1 and Input2.
+```{r}
+fit.1<-lm(Output~1,data=Regression.ANOVA.Data)
+fit.1.2<-lm(Output~1+Input1,data=Regression.ANOVA.Data)
+fit.1.3<-lm(Output~1+Input2,data=Regression.ANOVA.Data)
+fit.1.2.3<-lm(Output~.,data=Regression.ANOVA.Data)
+
+```
+
+2 Compare ANOVA table of each fit with the summary
+```{r}
+anova(fit.1.2)
+anova(fit.1.2)$Df
+
+anova(fit.1.2)$"Sum Sq"
+anova(fit.1.2)$"F value"[1]
+anova(fit.1.2)$"Pr(>F)"[1]
+
+```
+
+2.2 Compare summary(fit.1) and anova(fit.1)
+```{r}
+summary(fit.1)
+anova(fit.1)
+c(anova(fit.1)$"Sum Sq",sum(fit.1$residuals^2))
+
+
+```
+
+2.3 Compare summary(fit.1.2) and anova(fit.1.2)
+```{r}
+summary(fit.1.2)
+anova(fit.1.2)
+
+```
+
+
+
+2.4 Compare summary(fit.1.3) and anova(fit.1.3)
+```{r}
+summary(fit.1.3)
+anova(fit.1.3)
+```
+
+2.5 Compare summary(fit.1.2.3) and anova(fit.1.2.3)
+```{r}
+summary(fit.1.2.3)
+anova(fit.1.2.3)
+```
+3 Use anova() to compare nested linear models
+```{r}
+anova(fit.1.2,fit.1.2.3)
+anova(fit.1,fit.1.2.3)
+
+```
+
+4 Test
+4.1 Description
+```{r}
+dataPath <- "/Users/renjieliu/Desktop/Fall20/Stats Analysis/Week7"
+test_dat <- read.table(paste(dataPath,'Week7_Test_Sample.csv',sep = '/'), header=TRUE)
+
+fit.1<-lm(Output~1,data=test_dat)
+fit.1.2<-lm(Output~1+Input1,data=test_dat)
+fit.1.3<-lm(Output~1+Input2,data=test_dat)
+fit.1.2.3<-lm(Output~.,data=test_dat)
+
+anova(fit.1.2)$"Sum Sq"[2]
+summary(fit.1)
+summary(fit.1.2)
+summary(fit.1.3)
+summary(fit.1.2.3)
+
+anova(fit.1,fit.1.2.3)
+anova(fit.1,fit.1.2)
+anova(fit.1,fit.1.2.3)
+
+anova(fit.1.2)
+anova(fit.1.3)$"Sum Sq"[1]
+
+
+```
+
+
+
+
+
+
+
+
+
+

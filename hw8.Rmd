@@ -1,0 +1,83 @@
+---
+title: "hw8"
+author: "Renjie Liu"
+date: "11/21/2020"
+output: html_document
+---
+
+```{r}
+
+dataPath <- "/Users/renjieliu/Desktop/Fall20/Stats Analysis/week8"
+
+test_dat <- read.table(paste(dataPath,'Week8_Test_Sample.csv',sep = '/'), header=TRUE)
+
+
+summaryByGroup<-aggregate(Output~Treatment,data=test_dat,FUN=summary)
+summaryByGroup
+
+means<-cbind(Means=summaryByGroup$Output[,4],Sizes=aggregate(Output~Treatment,data=test_dat,FUN=length)$Output)
+rownames(means)<-as.character(summaryByGroup$Treatment)
+means
+
+
+```
+
+Linear Model
+```{r}
+model1<-lm(Output~Treatment,data=test_dat)
+
+modelSummary<-summary(model1)
+
+modelANOVA<-anova(model1)
+
+modelSummary$coefficients
+
+modelSummary$df
+
+c(Sigma=modelSummary$sigma,Rsquared=modelSummary$r.squared)
+
+modelSummary$fstatistic
+
+modelANOVA
+
+plot(model1$residuals)
+
+hist(model1$residuals)
+
+```
+
+
+
+
+```{r}
+dat <- test_dat
+dat$x1<-dat$Treatment=="B"
+dat$x2<-dat$Treatment=="C"
+dat
+
+model.full<-lm(Output~x1+x2, data=dat)
+model.null<-lm(Output~1,data=dat)
+
+
+
+anova(model.full)
+anova(model.null,model.full)
+
+summary(model1)
+
+anova(model1)
+
+```
+
+
+2 Experiment design
+```{r}
+model.matrix(model1)
+
+altmodel<-lm(Output~Treatment-1,data=test_dat)
+summary(altmodel)
+
+a1 <- anova(altmodel)
+
+```
+

@@ -1,0 +1,163 @@
+---
+title: "hw4"
+author: "Renjie Liu"
+date: "10/22/2020"
+output: html_document
+---
+
+```{r}
+dataPath<-"/Users/renjieliu/Desktop/Fall20/Stats Analysis/Week4"
+
+LinearModelData<-read.csv(file=paste(dataPath,'data1.csv',sep="/"))
+head(LinearModelData)
+plot(LinearModelData$Input,LinearModelData$Output)
+```
+
+
+2 Fitting linear model
+```{r}
+Estimated.LinearModel <- lm(Output ~ Input,data=LinearModelData)
+names(Estimated.LinearModel)
+plot(Estimated.LinearModel$residuals)
+Estimated.LinearModel$fitted.values
+summary(Estimated.LinearModel)
+names(summary(Estimated.LinearModel))
+
+summary(Estimated.LinearModel)$sigma
+summary(Estimated.LinearModel)$sigma^2
+
+```
+
+3 Analysis of residuals
+3.1 Residuals of the model
+```{r}
+Estimated.Residuals <- Estimated.LinearModel$residuals
+plot(LinearModelData$Input, Estimated.Residuals)
+
+Probability.Density.Residuals <- density(Estimated.Residuals)
+plot(Probability.Density.Residuals, ylim = c(0, 0.5))
+lines(Probability.Density.Residuals$x, dnorm(Probability.Density.Residuals$x, 
+    mean = mean(Estimated.Residuals), sd = sd(Estimated.Residuals)))
+```
+
+3.2 Clustering the sample
+```{r}
+c(Left.Mean = mean(Estimated.Residuals[Estimated.Residuals < 0]), 
+  Right.Mean = mean(Estimated.Residuals[Estimated.Residuals > 0]))
+
+length(Estimated.Residuals)
+Unscrambled.Selection.Sequence <- 0
+for (n in 1:1000) {
+  if(Estimated.Residuals[n]>0){
+    Unscrambled.Selection.Sequence[n] <- 1
+  } else if (Estimated.Residuals[n]<0) {
+    Unscrambled.Selection.Sequence[n] <- 0
+  }
+}
+head(Unscrambled.Selection.Sequence,30)
+
+
+
+
+LinearModel1.Recovered <- matrix(NA,250,4)
+LinearModel2.Recovered <- matrix(NA,250,4)
+
+for (n in 1:1000) {
+  if(Estimated.Residuals[n]>0){
+    LinearModel1.Recovered[n] <- Estimated.Residuals[n]
+  } else if (Estimated.Residuals[n]<0) {
+    LinearModel2.Recovered[n] <- Estimated.Residuals[n]
+  }
+}
+
+
+head(cbind(LinearModel1.Recovered,LinearModel2.Recovered),30)
+
+matplot(LinearModelData$Input, cbind(LinearModel1.Recovered[, 2], LinearModel2.Recovered[,2]), 
+        type = "p", col = c("green", "blue"), pch = 19, ylab = "Separated Subsamples")
+
+plot(Unscrambled.Selection.Sequence[1:100], type = "s")
+```
+
+
+3.3 Confusion matrix
+```{r}
+library(caret)
+cm<-confusionMatrix(as.factor(Unscrambled.Selection.Sequence),
+                    as.factor(Selection.Sequence.true))$table
+cm
+
+c(Accuracy=accuracy,
+  Sensitivity=sensitivity,
+  Specificity=specificity,
+  Balanced=balancedAccuracy)
+
+```
+
+
+4 Estimating models for subsamples
+4.1 Fitting models
+```{r}
+summary(LinearModel1.Recovered.lm)$coefficients
+summary(LinearModel1.Recovered.lm)$sigma
+summary(LinearModel1.Recovered.lm)$df
+c(summary(Estimated.LinearModel)$sigma,
+  summary(LinearModel1.Recovered.lm)$sigma,
+  summary(LinearModel2.Recovered.lm)$sigma)
+
+c(summary(Estimated.LinearModel)$r.squared,
+  summary(LinearModel1.Recovered.lm)$r.squared,
+  summary(LinearModel2.Recovered.lm)$r.squared)
+
+rbind(LinearModel=summary(Estimated.LinearModel)$fstatistic,
+      LinearModel1.Recovered=summary(LinearModel1.Recovered.lm)$fstatistic,
+      LinearModel2.Recovered=summary(LinearModel2.Recovered.lm)$fstatistic)
+
+
+c(LinearModel=pf(summary(Estimated.LinearModel)$fstatistic[1], 
+                 summary(Estimated.LinearModel)$fstatistic[2], 
+                 summary(Estimated.LinearModel)$fstatistic[3],lower.tail = FALSE),
+  LinearModel1.Recovered=pf(summary(LinearModel1.Recovered.lm)$fstatistic[1], 
+                            summary(LinearModel1.Recovered.lm)$fstatistic[2], 
+                            summary(LinearModel1.Recovered.lm)$fstatistic[3],lower.tail = FALSE),
+  LinearModel2.Recovered=pf(summary(LinearModel2.Recovered.lm)$fstatistic[1], 
+                            summary(LinearModel2.Recovered.lm)$fstatistic[2], 
+                            summary(LinearModel2.Recovered.lm)$fstatistic[3],lower.tail = FALSE))
+
+matplot(cbind(MixedModel.residuals=c(summary(LinearModel1.Recovered.lm)$residuals,
+                                     summary(LinearModel2.Recovered.lm)$residuals),
+              Single.Model.residuals=summary(Estimated.LinearModel)$residuals),
+        type="p",pch=16,ylab="Residuals before and after unscrambling")
+
+
+```
+
+
+
+Submission
+```{r}
+dat <- read.table(paste(dataPath,'Week4_Test_Sample.csv',sep = '/'), header=TRUE)
+
+Estimated.LinearModel <- lm(Y ~ X,data=dat)
+Estimated.Residuals <- Estimated.LinearModel$residuals
+c(Left.Mean = mean(Estimated.Residuals[Estimated.Residuals < 0]), 
+  Right.Mean = mean(Estimated.Residuals[Estimated.Residuals > 0]))
+length(Estimated.Residuals)
+Unscrambled.Selection.Sequence <- 0
+for (n in 1:1000) {
+  if(Estimated.Residuals[n]>0){
+    Unscrambled.Selection.Sequence[n] <- 1
+  } else if (Estimated.Residuals[n]<0) {
+    Unscrambled.Selection.Sequence[n] <- 0
+  }
+}
+
+res <- list(Unscrambled.Selection.Sequence =  Unscrambled.Selection.Sequence)
+
+write.table(res, file = paste(dataPath,'result.csv',sep = '/'), row.names = F)
+
+
+
+
+```
+
